@@ -1,0 +1,24 @@
+package af.web.jsx;
+
+import java.util.HashMap;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import af.web.AfQueryParams;
+
+public abstract class AfJsxCreator
+{
+	// httpReq : 请求对象
+	protected HttpServletRequest httpReq;
+	// httpResp : 应答对象
+	protected HttpServletResponse httpResp;
+	// queryParams : URL 末属附加的参数
+	protected AfQueryParams queryParams;
+	// charset： 字符编码
+	protected String charset ; 
+	
+	// 子类应重写这个方法 : 返回 JSONObject 或 JSONArray
+	public abstract Object execute() throws Exception;
+	
+}

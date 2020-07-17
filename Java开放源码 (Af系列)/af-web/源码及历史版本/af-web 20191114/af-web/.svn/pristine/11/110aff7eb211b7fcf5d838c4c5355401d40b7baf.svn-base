@@ -1,0 +1,41 @@
+package af.web;
+
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletResponse;
+
+/* 开发调试的时候使用本 Filter, 禁用客户端对静态文件进行缓存
+ * 方便对js/css/html的调试
+ * 正式发布时应删除本 filter (把 @WebFilter给注释掉)
+ */
+
+// 正式发布时，把@WebFilter行给注释掉
+// @WebFilter({"*.js", "*.css", "*.html"})
+public class AfCacheControlFilter implements Filter
+{
+	@Override
+	public void init(FilterConfig arg0) throws ServletException
+	{
+	}
+	@Override
+	public void destroy()
+	{
+	}
+
+	@Override
+	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+			throws IOException, ServletException
+	{
+		HttpServletResponse response = (HttpServletResponse)resp;
+		response.setHeader("Cache-Control", "max-age=0");
+		chain.doFilter(req, resp);
+	}
+
+}

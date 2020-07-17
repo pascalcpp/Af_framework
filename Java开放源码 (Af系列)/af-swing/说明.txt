@@ -1,0 +1,5 @@
+
+ 主要代码来自 Swing入门篇 和 Swing高级篇
+
+ 具体可以参考源码的ChangeLog
+

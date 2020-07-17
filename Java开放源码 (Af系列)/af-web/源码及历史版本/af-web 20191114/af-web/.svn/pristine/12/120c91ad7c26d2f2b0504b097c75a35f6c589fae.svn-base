@@ -1,0 +1,54 @@
+package af.web;
+
+import java.util.HashMap;
+
+/** 常见的 MIME类型
+ * 网站中级篇, 2.3讲
+ */
+public class AfMimeTypes
+{
+	private static HashMap<String,String> types = new HashMap();
+	static {
+		// text
+		register("html", "text/html");
+		register("txt", "text/plain");
+		register("jsp", "text/html");
+		// image
+		register("jpg", "image/jpeg");
+		register("jpeg", "image/jpeg");
+		register("png", "image/png");
+		register("gif", "image/gif");
+		// audio
+		register("mid", "audio/mid");
+		register("mp2", "audio/mp2");
+		register("mp3", "audio/mp3");
+		
+		// video
+		register("mp4", "video/mpeg4");
+		register("wmv", "video/x-ms-wmv");
+		register("avi", "video/avi");
+		register("mov", "video/x-sgi-movie");
+		// application
+		register("exe", "application/x-msdownload");
+		register("zip", "application/zip");
+		register("pdf", "application/pdf");
+	}
+	 
+	public static String DEFAULT_MIME_TYPE = "application/octet-stream";
+	
+	public static String getMimeType(String suffix)
+	{
+		String mimeType= types.get(suffix);
+		if(mimeType == null)
+		{
+			// 默认类型
+			mimeType = DEFAULT_MIME_TYPE;
+		}
+		return mimeType;
+	}
+	
+	private static void register(String suffix, String mimeType)
+	{
+		types.put(suffix, mimeType);
+	}
+}

@@ -1,0 +1,168 @@
+package my.activities;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.io.File;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+
+import af.common.process.AfProcess;
+import af.swing.AfButton;
+import af.swing.AfEditText;
+import af.swing.AfPanel;
+import af.swing.AfToaster;
+import af.swing.activity.AfActivity;
+import af.swing.layout.AfColumnLayout;
+import af.swing.layout.AfRowLayout;
+import my.DBInfo;
+import my.controls.CommonButton;
+import my.controls.DefaultButton;
+
+public class GenerateActivity extends AfActivity
+{
+	AfEditText pkgNameField = new AfEditText();
+	
+	AfButton backButton = new CommonButton("上一步");
+	AfButton generateButton = new DefaultButton("生成");
+	AfButton folderButton = new CommonButton("查看");
+	
+	// 
+	DBInfo info;
+	
+	public GenerateActivity()
+	{
+		this.setOpaque(false);
+		this.setLayout(new BorderLayout());
+		
+		// 
+		this.add(initTop(), BorderLayout.PAGE_START);	
+		// 
+		this.add(initCenter(), BorderLayout.CENTER);		
+		// 
+		this.add(initToolBar(), BorderLayout.PAGE_END);		
+	}
+	
+	@Override
+	public void onCreate(Object arg0)
+	{
+		
+	}
+	
+	private JComponent initTop()
+	{
+		AfPanel panel = new AfPanel();
+		panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xC0C0C0)));
+		panel.setLayout(new AfRowLayout(4));
+		panel.padding(2);
+		panel.preferredHeight(30);
+		panel.setOpaque(false);
+		
+		JLabel heading = new JLabel("4. 生成 POJO类");		
+		heading.setForeground(new Color(0xE0393D49));
+		panel.add(heading);
+		return panel;
+
+	}
+
+	public JComponent initCenter()
+	{
+		AfPanel panel = new AfPanel();
+		panel.setLayout(new AfColumnLayout(4));
+		panel.padding(50,10,10,10);
+		panel.setOpaque(false);
+		
+		JLabel a1 = new JLabel("package路径: ( 如 my.db )");
+		a1.setFont(a1.getFont().deriveFont(Font.PLAIN));
+		panel.add(a1, "30px");
+		panel.add(pkgNameField, "30px");
+		
+		return panel;
+	}
+	
+	// 工具按钮
+	private JComponent initToolBar()
+	{
+		AfPanel panel = new AfPanel();
+		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(0xC0C0C0)));
+		panel.setLayout(new AfRowLayout(4));
+		panel.padding(8);
+		panel.preferredHeight(50);
+		panel.setOpaque(false);
+		
+		panel.add(new JLabel(), "1w");
+		panel.add(backButton);
+		panel.add(generateButton, "60px");
+		panel.add(folderButton, "60px");
+		panel.add(new JLabel(), "1w");
+		
+		// 
+		generateButton.addActionListener( (e)->{
+			onGenerate();
+		});
+		
+		folderButton.addActionListener( (e)->{
+			onViewFolder();
+		});
+		
+		backButton.addActionListener( (e)->{
+			finish();
+			startActivity(TableActivity.class, null);
+		});
+		
+		return panel;
+	}	
+	
+	@Override
+	public void onStart()
+	{
+		info = (DBInfo) context.getParam("info", null);	
+		
+		if(info.pkgName == null || info.pkgName.isEmpty())
+		{
+			pkgNameField.setText("my.db");
+		}
+		else
+		{
+			pkgNameField.setText(info.pkgName);
+		}
+	}
+	
+	private void onGenerate()
+	{
+		info.pkgName = pkgNameField.getText().trim();
+		info.save();
+		
+		if(info.pkgName.isEmpty())
+		{
+			AfToaster.show(this, AfToaster.WARN, "请指定package路径!");
+			return;
+		}
+		
+		//
+		GenerateTask task = new GenerateTask();
+		task.startWork(info, ()->{
+			AfToaster.show(this, "生成完毕!");		
+		});
+	}
+	
+	private void onViewFolder()
+	{
+		try
+		{			
+			File f = new File("output");
+			String path = f.getCanonicalPath();
+			String cmdline = String.format("explorer \"%s\" ", path);
+			
+			AfProcess.run(cmdline);
+			
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+}

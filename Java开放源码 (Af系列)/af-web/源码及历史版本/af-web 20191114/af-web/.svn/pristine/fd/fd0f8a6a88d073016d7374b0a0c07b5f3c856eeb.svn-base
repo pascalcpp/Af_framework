@@ -1,0 +1,77 @@
+package af.web.jsonp;
+
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONObject;
+
+import af.web.AfQueryParams;
+import af.web.AfWebException;
+
+/* 支持JSONP
+ * 
+ */
+public abstract class AfSimpleJSONP extends HttpServlet
+{
+	protected String charset = "UTF-8"; // URL编码的字符集
+	protected int debug = 1; // 0, 不输出错误日志;1,简单输出;2, 详细输出
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException
+	{
+		// API的名称 
+		String servletPath = req.getRequestURI();
+		int p1 = servletPath.lastIndexOf('/');
+		String serviceName = servletPath.substring(p1 + 1);
+		
+		// callback 的名称 
+		AfQueryParams params = AfQueryParams.from(req.getQueryString(), charset);
+		String callback = params.getString("callback", "callback");
+		
+		JSONObject jresp = new JSONObject();
+		try{
+			Object data = execute(req, resp, params);
+			if(data != null)
+			{
+				jresp.put("data", data);
+			}
+			jresp.put("error", 0);
+			jresp.put("reason", "OK");			
+		}
+		catch(AfWebException e)
+		{
+			if(debug == 2) e.printStackTrace();
+			if(debug == 1) System.out.println("[ " + serviceName + "] " + e.getMessage());
+			jresp.put("error", e.error);
+			jresp.put("reason", e.reason);
+		}
+		catch(Exception e)
+		{
+			String reason = e.getMessage();
+			if(reason == null) reason = e.getClass().getName();
+			
+			if(debug == 2) e.printStackTrace();
+			if(debug == 1) System.out.println("[ " + serviceName + "] " + reason);
+
+			jresp.put("error", -1);
+			jresp.put("reason", reason);
+		}
+		
+		// 发送应答给客户端
+		resp.setCharacterEncoding(charset);
+		resp.setContentType("text/plain");
+		//response.setHeader("Connection", "close");
+		Writer writer = resp.getWriter();
+		writer.write( callback + "( " + jresp.toString(2) + " )" );
+		writer.close();
+	}
+	
+	protected abstract Object execute(HttpServletRequest req, 
+			HttpServletResponse resp, AfQueryParams params) throws Exception;
+}

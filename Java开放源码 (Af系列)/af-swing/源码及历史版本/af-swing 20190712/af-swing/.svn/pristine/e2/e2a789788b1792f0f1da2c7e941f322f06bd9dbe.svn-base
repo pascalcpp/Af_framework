@@ -1,0 +1,22 @@
+
+2019-05-20 : 修改 AfActivityPane，解决onStart()被调用2次的问题
+2019-05-17 : 修改 AfActivityPane，先stop上一个，再start下一个
+2019-04-25 : 增加 AfEditText, AfTextArea，增加PlaceHolder的显示
+2019-04-17 : 修改 AfActivityPane布局的错误,setBounds()应该使用相对位置
+2019-03-10 : 添加 AfDragableList，可拖动的列表框
+2019-03-07 : 修改 AfBorder, 去除 wrap()方法
+2019-03-06 : 添加 af.activity.* 框架
+2019-03-01 : 添加 AfCardPane 卡片容器
+2019-02-28 : AfToastr 因为枚举(enum)在调用的时候不太方便，把 Level改用int常量实现
+2019-02-27 : 添加 AfToaster 短消息提示
+2019-02-27 : 更新AfLabel, 背景色
+2019-02-27 : 添加 颜色选择器 AfColorPicker
+2019-02-26 : 添加弹出式窗口相关的工具类，在af.swing.popup.*下
+2019-02-22 : 添加可换行的文本显示控件 AfLabel
+2019-02-19 : 添加短任务类 AfLoadingBar 和 AfLoadingIcon
+2019-02-18 : 添加短任务类 af.swing.thread.AfShortTask
+2019-02-12 : 添加开关控件 af.swing.AfToggleButton
+2019-01-27 : 更新 af.swing.image.AfImageView，支持透明PNG的图标显示
+2019-01-27 : 添加 af.swing.layout.AfSimpleLayout
+2019-01-25 : 修改 AfImageView, 绘制PNG时，透明部分的颜色使用bgColor绘制
+2019-01-23 : 修改 AfColumnLayout里的小错误，width改成height

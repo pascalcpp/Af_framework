@@ -1,0 +1,92 @@
+package af.web.jsx;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+//import org.json.JSONObject;
+import org.json.JSONObject;
+
+import af.web.AfFormData;
+import af.web.AfQueryParams;
+
+
+public abstract class AfSimpleJSX extends HttpServlet
+{
+	// 控制输出为json 还是 js
+	protected boolean isJSONFormat = false;
+	protected boolean enableErrorLog = false;
+	
+	// 子类应重写这个方法 : 返回 JSONObject 或 JSONArray
+	public abstract Object execute(HttpServletRequest req,HttpServletResponse resp,
+			String serviceName,
+			HashMap<String, String> queryParams) throws Exception;
+	
+	protected void doGet(HttpServletRequest request,HttpServletResponse response) 
+					throws ServletException, IOException
+	{
+		
+		// 从URL中解析服务的名字
+		String servletPath = request.getServletPath();
+		int p1 = servletPath.lastIndexOf('/');
+		int p2 = servletPath.lastIndexOf('.');
+		String serviceName = servletPath.substring(p1 + 1, p2);
+		
+		String strResp = null;
+		try
+		{
+			// 读取URL里的参数  user.jsx?id=12
+			String query = request.getQueryString();
+			HashMap<String, String> queryParams = AfFormData.parse(query, "UTF-8");
+
+			request.setCharacterEncoding("UTF-8");
+			Object data = execute(request, response, serviceName,queryParams);
+						
+			if(isJSONFormat)
+			{
+				if(data == null)
+					strResp = "";
+				else
+					strResp = data.toString();
+			}
+			else 
+			{
+				if(data == null) 
+					strResp = "var " + serviceName + " = null;" ;
+				else
+					strResp = "var " + serviceName + " = " + data.toString() +";";
+			
+			}
+			
+		} catch (Exception e)
+		{
+			if(enableErrorLog)
+				e.printStackTrace();
+			
+			JSONObject result = new JSONObject();
+			result.put("error", -1);
+			result.put("reason", e.getMessage());
+			strResp = result.toString();
+		}
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("text/plain");
+		PrintWriter out = response.getWriter();
+		out.write(strResp);
+		out.close();
+	}
+
+
+
+}

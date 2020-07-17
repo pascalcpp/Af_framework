@@ -1,0 +1,9 @@
+﻿{
+  "server": "127.0.0.1",
+  "password": "a1b2c3",
+  "database": "af_forum",
+  "tables": ["topic"],
+  "pkgName": "my.db",
+  "user": "root",
+  "apiType": "general"
+}

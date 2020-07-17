@@ -1,0 +1,16 @@
+
+2019-06-21 添加 AfSimpleREST, AfFormData
+2019-06-04 修改AfSimpleMVC，允许在execute()里设置字符集和content-type
+2018-10-08 添加AfSimpleJSONP,用于快速实现JSONP接口 
+2018-10-08 修改 AfQuermParams,简化设计 直接继承于HashMap,并添加 from()方法直接解析
+2018-09-27 修改 debug=0,不输出;debug=1,简洁输出;debug=2,打印出错信息
+2018-09-21 修改AfGenericApi，增加属性 debug，用于替代原来的 enableErrorLog
+           可以在af-service.xml 里直接配置元素属性 debug=1 用于加强错误输出
+          示例  <service name="Publish" class="my.PublishApi" debug="1"/>
+          
+2018-09-17 修改AfFileUploadService，增加出错提示
+2018-09-14 添加AfWebException，并允许在AfSimpleMVC的子类里使用
+2018-09-13 添加AfWebException，并允许在AfSimpleMVC的子类里使用
+2018-09-12 修改AfJsxService, 返回缩进格式的JSON
+2018-09-12 修改AfRestfulApi,在出异常的时候, 打印简单的错误提示
+2018-09-12 修改AfGenericService, 在加载af-service.xml里，检查name是否重复

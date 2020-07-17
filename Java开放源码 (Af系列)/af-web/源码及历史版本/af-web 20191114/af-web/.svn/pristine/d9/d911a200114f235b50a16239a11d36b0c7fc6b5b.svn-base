@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build_jar" name="Create Runnable Jar for Project RongInstaller2">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+
+	<property name="classes" value="WebRoot/WEB-INF/classes/" />
+		
+	<tstamp>  
+		     <format property="TODAY" pattern="yyyyMMdd" locale="en"/>  
+	 </tstamp> 
+		     	
+    <target name="build_jar">
+    	<delete dir="build" includes="*.jar" />
+    	<jar destfile="build/af-web-1.0-build${TODAY}.jar"   basedir = "${classes}" includes="af/web/**" />    	 	
+    			
+    </target>
+	
+</project>

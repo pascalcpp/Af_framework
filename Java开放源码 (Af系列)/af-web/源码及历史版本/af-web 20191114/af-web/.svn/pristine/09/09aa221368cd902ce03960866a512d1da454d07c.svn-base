@@ -1,0 +1,145 @@
+package af.web.filter;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+import org.json.JSONObject;
+
+import af.web.AfWebException;
+
+
+public abstract class AfPermissionFilter implements Filter
+{
+	protected HashMap<String, ConfigItem> configs = new HashMap<String, ConfigItem>();
+
+	public void init(FilterConfig fConfig) throws ServletException
+	{
+		// 从af-service.xml配置文件中读取配置
+		try
+		{
+			loadConfig();
+		} catch (Exception e)
+		{
+			throw new Error("af-service.xml 加载失败! " + e.getMessage());
+		}
+	}
+	
+	public void destroy()
+	{
+	}
+
+	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+			throws IOException, ServletException
+	{
+		HttpServletRequest request = (HttpServletRequest) req;
+		HttpServletResponse response = (HttpServletResponse) resp;
+		
+		// 从URL中解析服务的名字
+		String servletPath = request.getServletPath();
+		int p1 = servletPath.lastIndexOf('/');
+		int p2 = servletPath.lastIndexOf('.');
+		String serviceName = servletPath.substring(p1 + 1, p2);
+		String servicePath = servletPath.substring(p1+1);
+		
+		// 检查配置		
+		ConfigItem cfg = configs.get(serviceName);
+		if ( cfg == null || cfg.permissions == null)
+		{
+			// 如果cfg.permissions未设置，说明不需要检查
+			chain.doFilter(request, response);
+		}
+		else
+		{			
+			try
+			{
+				checkPermission (servicePath ,cfg.permissions, request, response);
+				chain.doFilter(request, response);
+			}
+			catch(AfWebException e)
+			{
+				JSONObject jresp = new JSONObject();
+				jresp.put("error", e.error);
+				jresp.put("reason", e.reason);
+				
+				// 发送应答给客户端
+				response.setCharacterEncoding("UTF-8");
+				response.setContentType("text/plain");
+				//response.setHeader("Connection", "close");
+				Writer writer = response.getWriter();
+				writer.write( jresp.toString() );
+				writer.close();	
+			}
+		}			
+	}
+
+	// 子类需要重写这个方法
+	// permissions: 表示要调用这个接口，当前用户必须拥有这些权限
+	// 返回 true: 通过检查; 返回false：不通过检查
+	// 一般不要抛出异常，如果抛出异常，由上层返回错误 
+	protected abstract void checkPermission(String servicePath ,
+			List<String> permissions,
+			HttpServletRequest request,
+			HttpServletResponse response) throws AfWebException;
+	
+	
+	/////////////////////////////////////
+	// af-service.xml 中的配置项
+	// 示例 <upload name="xx" class="yy" permissions="AddStudent,RemoveStudent"/>
+	// 如果没有 permission属性，表示不检查权限
+	// 如果permission为空字符串，表示只需要检查登录,不需要特殊的权限
+	class ConfigItem
+	{
+		public String name;       // 服务接口名
+		public List<String> permissions;
+	}
+	
+	// 从 af-service.xml 中获取配置
+	private void loadConfig() throws Exception
+	{		
+		InputStream stream = this.getClass().getResourceAsStream(
+				"/af-service.xml");
+		SAXReader reader = new SAXReader();
+		Document doc = reader.read(stream);
+		stream.close();
+		
+		Element root = doc.getRootElement();
+		List<Element> xServiceList = root.elements("service");
+		for (Element e : xServiceList)
+		{
+			ConfigItem cfg = new ConfigItem();
+			cfg.name = e.attributeValue("name");
+			
+			String permissions = e.attributeValue("permissions");
+			if(permissions != null)
+			{
+				configs.put(cfg.name, cfg);
+				// 要调用这个API，必须要有这些权限
+				cfg.permissions = new ArrayList<String>();
+				String[] ppp = permissions.split(","); // 权限以逗号分开
+				for(String p : ppp)
+				{
+					p = p.trim();
+					if(p.length() >0) cfg.permissions.add(p);
+				}
+			}
+		}
+	}
+
+}

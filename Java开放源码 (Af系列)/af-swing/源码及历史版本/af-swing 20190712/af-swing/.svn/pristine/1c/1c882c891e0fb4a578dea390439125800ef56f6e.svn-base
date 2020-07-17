@@ -1,0 +1,239 @@
+package af.swing.activity;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
+import javax.swing.JPanel;
+
+/* Swing高级，19章
+ * 
+ */
+
+/*
+ * 前往新页面 startActivity() : 
+ *   1 finish()自身 
+ *   2 不finish()自身，则维持一个调用栈
+ */
+
+public class AfActivityPane extends JPanel
+{
+	List<AfActivity> stack = new ArrayList<>(); // 返回栈
+	Map<String,Object> params = new HashMap<>(); // 上下文
+	
+	public AfActivityPane()
+	{		
+		this.setLayout(new CustomLayout());
+	}
+	
+	// 前往新的 Activity
+	public void startActivity(Class<? extends AfActivity> clazz, Object intent)
+	{
+		AfActivity a = null;	
+		try {
+			a = (AfActivity)clazz.newInstance();
+			a.context = this;
+			a.intent = intent;
+		}catch(Exception e)
+		{
+			System.out.println("**AfActivityPane: 不能创建类 " + clazz.getName() 
+			    +", 请确认此类具有public的默认构造方法(无参数构造方法),并且不要有异常抛出！");
+			e.printStackTrace();
+			return;
+		}
+		
+		// 隐藏上一个界面
+		AfActivity lastActivity = getLastActivity();
+		if(lastActivity != null)
+		{
+			if(lastActivity.started)
+			{
+				lastActivity.onStop();
+				lastActivity.started = false;
+			}
+		}
+		
+		// 添加并启动新的界面
+		this.add(a);		
+		stack.add( a );
+		
+		if(!a.created)
+		{
+			a.onCreate(intent);
+			a.created = true;
+		}
+		
+		// 显示新的界面
+		showLastActivity();
+//		this.validate();
+//		if(!a.started)
+//		{
+//			a.onStart();
+//			a.started = true;
+//		}
+		
+	}
+	
+	public void finish(AfActivity a)
+	{
+		if(a == null) return;
+		
+		if(a.started)
+		{
+			a.onStop();
+			a.started = false;
+		}
+		
+		if(a.created)
+		{
+			a.onDestroy();
+			a.created = false;
+		}
+		
+		stack.remove( a );
+		
+		this.remove( a);		
+		
+	}
+	
+	public void back( AfActivity caller )
+	{	
+		AfActivity a = getLastActivity();
+		if(  a == caller)
+		{
+			finish( caller );
+		}
+		
+		showLastActivity();
+	}
+
+	
+	// 最后一个Activity
+	public AfActivity getLastActivity()
+	{
+		if(stack.size() == 0) return null;
+		return stack.get( stack.size() - 1);
+	}
+	
+	// 显示最后一个Activity
+	private void showLastActivity()
+	{
+		this.validate();
+		
+		AfActivity a = getLastActivity();
+		if(a != null)
+		{
+			if(!a.started)
+			{
+				a.onStart();
+				a.started = true;
+			}
+		}
+	}
+	
+	
+	
+	// 自定义布局
+	private class CustomLayout implements LayoutManager
+	{
+		@Override
+		public void addLayoutComponent(String name, Component comp)
+		{			
+		}
+
+		@Override
+		public void removeLayoutComponent(Component comp)
+		{			
+		}
+
+		@Override
+		public Dimension preferredLayoutSize(Container parent)
+		{
+			return null;
+		}
+
+		@Override
+		public Dimension minimumLayoutSize(Container parent)
+		{
+			return null;
+		}
+
+		@Override
+		public void layoutContainer(Container parent)
+		{
+			Rectangle rect = parent.getBounds();
+			//System.out.println("parent: " + rect);
+			
+			for(int i=0; i<stack.size();i++)
+			{
+				AfActivity a = stack.get(i);
+				if(i < stack.size() - 1)
+				{
+					a.setVisible(false);
+				}
+				else
+				{
+					a.setBounds( new Rectangle(rect.width,rect.height) );
+					a.setVisible( true );
+				}
+			}
+		}		
+	}	
+	
+	
+	//////////////获取参数  //////////////
+	public Object getParam(String key, Object defValue)
+	{
+		Object v = params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}
+	public void putParam(String key, Object value)
+	{
+		params.put(key, value);
+	}
+	
+	public long getParamLong(String key, long defValue)
+	{
+		Long v = (Long)params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}
+	public int getParamInt(String key, int defValue)
+	{
+		Integer v = (Integer)params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}
+	public short getParamShort(String key, short defValue)
+	{
+		Short v = (Short)params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}
+	public boolean getParamBoolean(String key, boolean defValue)
+	{
+		Boolean v = (Boolean)params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}	
+	public String getParamString(String key, String defValue)
+	{
+		String v = (String)params.get(key);
+		if( v == null)
+			return defValue;
+		return v;
+	}		
+}

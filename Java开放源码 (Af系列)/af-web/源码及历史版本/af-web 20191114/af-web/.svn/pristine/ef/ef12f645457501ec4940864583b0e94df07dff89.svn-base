@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<!-- REST API 配置示例
+		<service name="Hello" class="my.HelloApi" />	 	
+	-->
+	<!-- 文件上传配置示例
+		<upload name="SimpleFileUpload" class="my.SimpleUploader" /> 
+	-->
+	
+	
+</config>

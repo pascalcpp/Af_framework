@@ -1,0 +1,11 @@
+
+2019-05-15 添加 af.common.crypto.AfCrypto
+2019-04-29 修改 AfXml，增加 Double的支持
+2019-04-29 修改 AfProcess，支持链式调用
+2018-09-20 添加 StringIDList ，用于操作一串ID
+
+2018-09-18 修改 HTTP，添加一个post()方法
+
+2018-09-07 添加 AfJSON.guessType() 方法，用以判断一个字符串是JSONObject, 还是JSONArray
+
+2018-09-07 修改 HTTP 的实现，适用于单例使用，以便保持 Cookie 数据

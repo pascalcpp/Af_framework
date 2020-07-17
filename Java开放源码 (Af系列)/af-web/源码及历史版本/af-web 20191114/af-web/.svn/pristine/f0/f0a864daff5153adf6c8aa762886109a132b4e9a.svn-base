@@ -1,0 +1,86 @@
+package af.web;
+
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+
+public class AfQueryParams extends HashMap<String, String>
+{
+	
+	// 解析query字会串
+	public static AfQueryParams from( String query, String charset)
+	{
+		AfQueryParams result = new AfQueryParams();
+		if (query == null)	return result; 
+
+		String[] ppp = query.split("&"); // 用&分隔
+		for (String p : ppp)
+		{
+			String[] kv = p.split("="); // key=value
+			String key = kv[0];
+			String value = "";
+			if (key.length() > 1)
+				value = kv[1]; // 有时候参数里传的是空值
+			if (value.indexOf('%') >= 0)
+			{
+				// 如果存在百分号, 则进行URL解码
+				try
+				{
+					value = URLDecoder.decode(value, charset);
+				} catch (Exception e)
+				{
+				}
+			}
+			result.put(key, value);
+		}
+		return result;
+	}
+	
+	
+	// 从参数中取值
+	public Integer getInt(String key, Integer defValue)
+	{
+		try
+		{
+			return Integer.valueOf(this.get(key));
+		} catch (Exception e)
+		{
+			return defValue;
+		}
+	}
+
+	public Long getLong(String key, Long defValue)
+	{
+		try
+		{
+			return Long.valueOf(this.get(key));
+		} catch (Exception e)
+		{
+			return defValue;
+		}
+	}
+
+	public String getString(String key, String defValue)
+	{
+		try
+		{
+			String val = this.get(key);
+			if (val != null)
+				return val;
+		} catch (Exception e)
+		{
+		}
+		return defValue;
+	}
+
+	public Boolean getBoolean(String key, Boolean defValue)
+	{
+		try
+		{
+			return Boolean.valueOf(this.get(key));
+		} catch (Exception e)
+		{
+			return defValue;
+		}
+	}
+}

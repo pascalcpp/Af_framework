@@ -1,0 +1,37 @@
+
+.af-dialog-mask {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    overflow: auto;
+    overflow-x: hidden;    
+    background: #888888;
+    opacity:0.5;
+}
+
+.af-dialog {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    overflow: auto;
+    overflow-x: hidden;    
+}
+
+.af-dialog-frame {
+    width: 400px;
+    height: 200px;
+    margin: 50px auto;
+    background: #fff;    
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    box-sizing: border-box;
+}
+

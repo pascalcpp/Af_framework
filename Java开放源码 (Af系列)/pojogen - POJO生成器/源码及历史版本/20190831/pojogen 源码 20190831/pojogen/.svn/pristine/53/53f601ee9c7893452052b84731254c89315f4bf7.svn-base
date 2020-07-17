@@ -1,0 +1,185 @@
+package my.activities;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+
+import af.sql.AfSqlWhere;
+import af.swing.AfButton;
+import af.swing.AfPanel;
+import af.swing.AfToaster;
+import af.swing.activity.AfActivity;
+import af.swing.layout.AfColumnLayout;
+import af.swing.layout.AfRowLayout;
+import af.swing.thread.AfShortTask;
+import my.DBInfo;
+import my.controls.CommonButton;
+import my.controls.DefaultButton;
+import my.listview.SimpleListView;
+
+public class TableActivity extends AfActivity
+{	
+	SimpleListView<String> listView = new SimpleListView<>();
+	
+	//
+	AfButton nextButton = new DefaultButton("下一步");
+	AfButton backButton = new CommonButton("上一步");
+	
+	// 
+	DBInfo info;
+	
+	public TableActivity()
+	{
+		this.setOpaque(false);
+		this.setLayout(new BorderLayout());
+		
+		// 
+		this.add(initTop(), BorderLayout.PAGE_START);	
+		// 
+		this.add(initCenter(), BorderLayout.CENTER);
+		//
+		this.add(initToolBar(), BorderLayout.PAGE_END);
+
+	}
+	
+	private JComponent initTop()
+	{
+		AfPanel panel = new AfPanel();
+		//panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xC0C0C0)));
+		panel.setLayout(new AfRowLayout(4));
+		panel.padding(2);
+		panel.preferredHeight(30);
+		panel.setOpaque(false);
+
+		JLabel heading = new JLabel("3. 选择表名");
+		heading.setForeground(new Color(0xE0393D49));
+		panel.add(heading);
+		return panel;
+	}
+	
+	private JComponent initCenter()
+	{
+		AfPanel panel = new AfPanel();
+		panel.setLayout(new AfColumnLayout(4));
+		panel.padding(2);
+		panel.setOpaque(false);
+		
+		panel.add(new JScrollPane(listView), "1w");
+		return panel;
+	}
+
+
+	
+	// 工具按钮
+	private JComponent initToolBar()
+	{
+		AfPanel panel = new AfPanel();
+		panel.setLayout(new AfRowLayout(4));
+		panel.padding(8);
+		panel.preferredHeight(50);
+		panel.setOpaque(false);
+
+		
+		panel.add(backButton);
+		panel.add(new JLabel(), "1w");
+		panel.add(nextButton);
+		//panel.add(new JLabel(), "1w");
+		
+		// 
+		nextButton.addActionListener( (e)->{
+			onNext();
+		});
+		
+		backButton.addActionListener( (e)->{
+			finish();
+			startActivity(DataBaseActivity.class, null);
+		});
+		
+		return panel;
+	}
+		
+	@Override
+	public void onCreate(Object arg0)
+	{
+		
+	}
+
+	@Override
+	public void onStart()
+	{
+		info = (DBInfo) context.getParam("info", null);
+		
+		listView.clear();
+		
+		new TableQueryTask().execute();
+	}
+	
+	//
+	// '下一步'
+	private void onNext()
+	{
+		List<String> nameList = listView.getSelectedValuesList();
+		if(nameList.size() == 0) 
+		{
+			AfToaster.show(this, "请选择表!");
+			return ;
+		}
+		
+		//
+		info.tables = nameList;
+		info.save();
+		
+		//
+		finish();
+		startActivity(GenerateActivity.class, null);
+		
+	}	
+	
+	private class TableQueryTask extends AfShortTask
+	{
+		List<String> nameList = new ArrayList<>();
+		
+		@Override
+		protected void doInBackground() throws Exception
+		{
+			AfSqlWhere where = new AfSqlWhere();
+			where.add2("table_schema", info.database);
+			
+			String sql = "select table_name from tables" + where;
+			ResultSet rs = info.conn.executeQuery(sql);
+			while(rs.next())
+			{
+				String name = rs.getString(1);
+				nameList.add(name);
+			}		
+		}
+
+		@Override
+		protected void done()
+		{
+			if(this.err != null)
+			{
+				AfToaster.show(listView, AfToaster.WARN, err.getMessage());
+				return;
+			}
+			for(String name: nameList)
+			{
+				listView.addItem( name );
+			}
+			
+			// 默认选中
+			for(String name : info.tables)
+			{
+				listView.selectItem(name,  true);
+			}
+		}
+		
+	}
+}
